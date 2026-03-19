@@ -1,35 +1,38 @@
 import express from "express";
 import dotenv from "dotenv";
-dotenv.config();
 import cors from "cors";
 import cookieParser from "cookie-parser";
 import mongoose from "mongoose";
 import dns from "dns";
 import authRoutes from "./routes/authRoutes.js";
 import videoRoutes from "./routes/videoRoutes.js";
+import Course from "./models/Course.js";
+
+dotenv.config();
 
 // Fix for querySrv ECONNREFUSED - use Google's public DNS
 dns.setServers(["8.8.8.8", "8.8.4.4"]);
 
 const app = express();
 
-// Middleware
+// 1. Middleware
 app.use(express.json());
 app.use(cookieParser());
-// CORS configuration
+
+// 2. CORS configuration
 const allowedOrigins = [
   process.env.CLIENT_URL,
-  'http://localhost:5173',
-  /\.vercel\.app$/ // Matches any vercel.app subdomain
+  "http://localhost:5173",
+  /\.vercel\.app$/,
 ].filter(Boolean);
 
-app.use(cors({
+const corsOptions = {
   origin: (origin, callback) => {
-    // allow requests with no origin (like mobile apps or curl requests)
+    // Allow requests with no origin (like mobile apps or curl)
     if (!origin) return callback(null, true);
-    
-    const isAllowed = allowedOrigins.some(allowed => {
-      if (typeof allowed === 'string') return allowed === origin;
+
+    const isAllowed = allowedOrigins.some((allowed) => {
+      if (typeof allowed === "string") return allowed === origin;
       if (allowed instanceof RegExp) return allowed.test(origin);
       return false;
     });
@@ -37,34 +40,42 @@ app.use(cors({
     if (isAllowed) {
       callback(null, true);
     } else {
-      console.log('Origin not allowed by CORS:', origin);
-      callback(new Error('Not allowed by CORS'));
+      console.log("Origin not allowed by CORS:", origin);
+      callback(new Error("Not allowed by CORS"));
     }
   },
-  credentials: true,
-}));
+  credentials: true, // Required for cookies/sessions
+  methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+  allowedHeaders: [
+    "Content-Type",
+    "Authorization",
+    "X-Requested-With",
+    "Accept",
+  ],
+  optionsSuccessStatus: 200,
+};
 
-// Database Connection
+// Apply CORS to all routes
+app.use(cors(corsOptions));
+
+// 3. Handle Preflight requests globally
+// This is CRITICAL for Vercel deployments
+app.options("*", cors(corsOptions));
+
+// 4. Database Connection
 const connectDB = async () => {
   try {
     if (!process.env.MONGODB_URI) {
-      console.log(
-        "MONGODB_URI not found in .env, skipping DB connection for now.",
-      );
+      console.log("MONGODB_URI not found in .env, skipping DB connection.");
       return;
     }
     await mongoose.connect(process.env.MONGODB_URI);
     console.log("MongoDB Connected...");
-
-    // Seed default data
     seedCourses();
   } catch (err) {
     console.error("Error connecting to MongoDB:", err.message);
-    // Don't exit process so server can still start without DB for now
   }
 };
-
-import Course from "./models/Course.js";
 
 const seedCourses = async () => {
   try {
@@ -91,15 +102,21 @@ const seedCourses = async () => {
 
 connectDB();
 
-// Routes
+// 5. Routes
 app.use("/api/auth", authRoutes);
 app.use("/api/videos", videoRoutes);
 
-// Basic route
 app.get("/", (req, res) => {
   res.send("UITUBE API is running...");
 });
 
+// 6. Server Export/Listen
 const PORT = process.env.PORT || 5000;
 
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+// If deploying as a Vercel Serverless function, we export the app
+// Otherwise, we listen on the port
+if (process.env.NODE_ENV !== "production") {
+  app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+}
+
+export default app;
