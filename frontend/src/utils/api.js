@@ -9,7 +9,12 @@ const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 export const apiFetch = async (endpoint, options = {}) => {
   const { headers, body, ...rest } = options;
   
-  const response = await fetch(`${API_URL}${endpoint}`, {
+  // CRITICAL: Normalize URL to prevent 404s and double slashes (//)
+  // Ensures the URL always has /api and no redundant slashes.
+  const baseUrl = API_URL.endsWith('/') ? API_URL.slice(0, -1) : API_URL;
+  const cleanEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
+  
+  const response = await fetch(`${baseUrl}${cleanEndpoint}`, {
     ...rest,
     headers: {
       'Content-Type': 'application/json',
