@@ -1,5 +1,6 @@
 import User from '../models/User.js';
 import jwt from 'jsonwebtoken';
+import mongoose from 'mongoose';
 import { generateCode, sendVerificationEmail } from '../utils/sendEmail.js';
 
 // Generate Token
@@ -14,6 +15,13 @@ const generateToken = (id) => {
 // @access  Public
 export const registerUser = async (req, res) => {
   try {
+    // Check if database is connected
+    if (mongoose.connection.readyState !== 1) {
+      return res.status(503).json({ 
+        message: 'Database is not connected. Please check your MongoDB Atlas IP whitelist.',
+        status: 'db_disconnected'
+      });
+    }
     const { name, email, password, role } = req.body;
 
     const userExists = await User.findOne({ email });
@@ -59,6 +67,13 @@ export const registerUser = async (req, res) => {
 // @access  Public
 export const loginUser = async (req, res) => {
   try {
+    // Check if database is connected
+    if (mongoose.connection.readyState !== 1) {
+       return res.status(503).json({ 
+         message: 'Database is not connected. Please check your MongoDB Atlas IP whitelist.',
+         status: 'db_disconnected'
+       });
+    }
     const { email, password } = req.body;
 
     // Check for user email

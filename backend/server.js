@@ -8,8 +8,7 @@ import dns from "dns";
 import authRoutes from "./routes/authRoutes.js";
 import videoRoutes from "./routes/videoRoutes.js";
 
-// Fix for querySrv ECONNREFUSED - use Google's public DNS
-dns.setServers(["8.8.8.8", "8.8.4.4"]);
+// dns.setServers(["8.8.8.8", "8.8.4.4"]); // Removed as it can cause permissions issues on Vercel
 
 const app = express();
 
@@ -66,6 +65,8 @@ const connectDB = async () => {
 };
 
 import Course from "./models/Course.js";
+
+// DB and Courses seeded in connectDB above
 
 const seedCourses = async () => {
   try {
