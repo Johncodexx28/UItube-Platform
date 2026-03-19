@@ -11,6 +11,7 @@ import AuthPage from './pages/AuthPage';
 import Messages from './pages/Messages';
 import Instructors from './pages/Instructors';
 import Settings from './pages/Settings';
+import UnderDevelopment from './pages/UnderDevelopment';
 import ProtectedRoute from './components/ProtectedRoute';
 
 function App() {
@@ -34,6 +35,9 @@ function App() {
               <Route path="/messages" element={<Messages />} />
               <Route path="/instructors" element={<Instructors />} />
               <Route path="/settings" element={<Settings />} />
+              <Route path="/my-lessons" element={<UnderDevelopment title="My Lessons" />} />
+              <Route path="/assignments" element={<UnderDevelopment title="Assignments" />} />
+              <Route path="/reports" element={<UnderDevelopment title="Analytics" />} />
               <Route path="/video/:id" element={<VideoPlayer />} />
               <Route path="/teacher/:id" element={<TeacherProfile />} />
               
