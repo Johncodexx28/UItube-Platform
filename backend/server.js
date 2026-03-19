@@ -17,6 +17,7 @@ const app = express();
 app.use(express.json());
 app.use(cookieParser());
 // CORS configuration
+// CORS configuration
 const allowedOrigins = [
   process.env.CLIENT_URL,
   'http://localhost:5173',
@@ -95,11 +96,15 @@ connectDB();
 app.use("/api/auth", authRoutes);
 app.use("/api/videos", videoRoutes);
 
-// Basic route
 app.get("/", (req, res) => {
   res.send("UITUBE API is running...");
 });
 
 const PORT = process.env.PORT || 5000;
 
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+// CRITICAL for Vercel: Only listen locally, export for production
+if (process.env.NODE_ENV !== "production") {
+  app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+}
+
+export default app;
