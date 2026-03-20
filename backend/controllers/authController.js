@@ -15,8 +15,8 @@ const generateToken = (id) => {
 // @access  Public
 export const registerUser = async (req, res) => {
   try {
-    // Check if database is connected
-    if (mongoose.connection.readyState !== 1) {
+    // Check if database is connected (allow 1=connected, 2=connecting for Vercel cold starts)
+    if (mongoose.connection.readyState !== 1 && mongoose.connection.readyState !== 2) {
       return res.status(503).json({ 
         message: 'Database is not connected. Please check your MongoDB Atlas IP whitelist.',
         status: 'db_disconnected'
@@ -67,8 +67,8 @@ export const registerUser = async (req, res) => {
 // @access  Public
 export const loginUser = async (req, res) => {
   try {
-    // Check if database is connected
-    if (mongoose.connection.readyState !== 1) {
+    // Check if database is connected (allow 1=connected, 2=connecting for Vercel cold starts)
+    if (mongoose.connection.readyState !== 1 && mongoose.connection.readyState !== 2) {
        return res.status(503).json({ 
          message: 'Database is not connected. Please check your MongoDB Atlas IP whitelist.',
          status: 'db_disconnected'

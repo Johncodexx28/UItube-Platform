@@ -33,17 +33,25 @@ const MyClass = () => {
   });
 
   const fetchData = async () => {
+    if (!user) return;
     try {
       setLoading(true);
-      const [lessonsData, myVideos] = await Promise.all([
-        api.get('/videos/courses'), // For categories/courses if needed
-        api.get('/videos/my-videos')
-      ]);
-      setLessons(myVideos);
-      
-      // Filter assigned lessons based on selected section (logic simplified for demo)
-      const assigned = myVideos.filter(v => v.visibility === 'Private' && v.assignedSections?.includes(selectedSection));
-      setAssignedLessons(assigned);
+      if (user.role === 'Teacher') {
+        const [lessonsData, myVideos] = await Promise.all([
+          api.get('/videos/courses'), // For categories/courses if needed
+          api.get('/videos/my-videos')
+        ]);
+        setLessons(myVideos);
+        
+        // Filter assigned lessons based on selected section
+        const assigned = myVideos.filter(v => v.visibility === 'Private' && v.assignedSections?.includes(selectedSection));
+        setAssignedLessons(assigned);
+      } else {
+        // Students don't need access to 'my-videos' (which throws 401)
+        const allVideos = await api.get('/videos');
+        const assigned = allVideos.filter(v => v.visibility === 'Private' && v.assignedSections?.includes(user?.section));
+        setAssignedLessons(assigned);
+      }
     } catch (error) {
       console.error('Error fetching class data:', error);
     } finally {
