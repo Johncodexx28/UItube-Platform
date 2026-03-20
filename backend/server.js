@@ -8,7 +8,9 @@ import dns from "dns";
 import authRoutes from "./routes/authRoutes.js";
 import videoRoutes from "./routes/videoRoutes.js";
 
-// dns.setServers(["8.8.8.8", "8.8.4.4"]); // Removed as it can cause permissions issues on Vercel
+if (process.env.NODE_ENV !== "production") {
+  dns.setServers(["8.8.8.8", "8.8.4.4"]);
+}
 
 const app = express();
 
