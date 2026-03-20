@@ -589,25 +589,33 @@ const AuthPage = () => {
             />
           </div>
 
-          <div className="space-y-1.5 pt-1 relative">
+          <div className="space-y-1.5 pt-1">
             <label className="text-[13px] font-semibold text-gray-400">
               Your Password
             </label>
-            <input
-              type={showPassword ? "text" : "password"}
-              required
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="••••••••••••"
-              className="w-full pl-4 pr-12 py-3 bg-white border border-gray-200 rounded-md outline-none focus:border-primary transition-all text-gray-700 tracking-widest placeholder:tracking-normal placeholder:text-gray-300"
-            />
-            <button
-              type="button"
-              onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-4 bottom-3 text-gray-400 hover:text-gray-600 transition-colors"
-            >
-              {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-            </button>
+            <div className="relative">
+              <input
+                type={showPassword ? "text" : "password"}
+                required
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="••••••••••••"
+                minLength={view === "register" ? 6 : undefined}
+                className="w-full pl-4 pr-12 py-3 bg-white border border-gray-200 rounded-md outline-none focus:border-primary transition-all text-gray-700 tracking-widest placeholder:tracking-normal placeholder:text-gray-300"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-4 bottom-3 text-gray-400 hover:text-gray-600 transition-colors"
+              >
+                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+              </button>
+            </div>
+            {view === "register" && (
+              <p className="text-[11.5px] text-gray-400 mt-1 font-medium">
+                Password must be at least 6 characters.
+              </p>
+            )}
           </div>
 
           {view === "register" && (
