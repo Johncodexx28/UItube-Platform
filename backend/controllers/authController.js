@@ -1,13 +1,17 @@
-import User from '../models/User.js';
-import jwt from 'jsonwebtoken';
-import mongoose from 'mongoose';
-import { generateCode, sendVerificationEmail } from '../utils/sendEmail.js';
+import User from "../models/User.js";
+import jwt from "jsonwebtoken";
+import mongoose from "mongoose";
+import { generateCode, sendVerificationEmail } from "../utils/sendEmail.js";
 
 // Generate Token
 const generateToken = (id) => {
-  return jwt.sign({ id }, process.env.JWT_SECRET || 'fallback_secret_do_not_use_in_prod', {
-    expiresIn: '30d',
-  });
+  return jwt.sign(
+    { id },
+    process.env.JWT_SECRET || "fallback_secret_do_not_use_in_prod",
+    {
+      expiresIn: "30d",
+    },
+  );
 };
 
 // @desc    Register new user
@@ -16,10 +20,13 @@ const generateToken = (id) => {
 export const registerUser = async (req, res) => {
   try {
     // Check if database is connected (allow 1=connected, 2=connecting for Vercel cold starts)
-    if (mongoose.connection.readyState !== 1 && mongoose.connection.readyState !== 2) {
-      return res.status(503).json({ 
-        message: 'Database is not connected. Please check your MongoDB Atlas IP whitelist.',
-        status: 'db_disconnected'
+    if (
+      mongoose.connection.readyState !== 1 &&
+      mongoose.connection.readyState !== 2
+    ) {
+      return res.status(503).json({
+        message: "Error occured in the server",
+        status: "db_disconnected",
       });
     }
     const { name, email, password, role } = req.body;
@@ -27,7 +34,7 @@ export const registerUser = async (req, res) => {
     const userExists = await User.findOne({ email });
 
     if (userExists) {
-      return res.status(400).json({ message: 'User already exists' });
+      return res.status(400).json({ message: "User already exists" });
     }
 
     // Generate verification code
@@ -37,7 +44,7 @@ export const registerUser = async (req, res) => {
       name,
       email,
       password,
-      role: role || 'Student',
+      role: role || "Student",
       isVerified: false,
       verificationCode,
       verificationCodeExpires: new Date(Date.now() + 10 * 60 * 1000), // 10 minutes
@@ -51,14 +58,15 @@ export const registerUser = async (req, res) => {
       res.status(201).json({
         needsVerification: true,
         email: user.email,
-        message: 'Registration successful! Please check your email for a verification code.',
+        message:
+          "Registration successful! Please check your email for a verification code.",
       });
     } else {
-      res.status(400).json({ message: 'Invalid user data' });
+      res.status(400).json({ message: "Invalid user data" });
     }
   } catch (error) {
-    console.error('Register error:', error);
-    res.status(500).json({ message: 'Server error' });
+    console.error("Register error:", error);
+    res.status(500).json({ message: "Server error" });
   }
 };
 
@@ -68,22 +76,26 @@ export const registerUser = async (req, res) => {
 export const loginUser = async (req, res) => {
   try {
     // Check if database is connected (allow 1=connected, 2=connecting for Vercel cold starts)
-    if (mongoose.connection.readyState !== 1 && mongoose.connection.readyState !== 2) {
-       return res.status(503).json({ 
-         message: 'Database is not connected. Please check your MongoDB Atlas IP whitelist.',
-         status: 'db_disconnected'
-       });
+    if (
+      mongoose.connection.readyState !== 1 &&
+      mongoose.connection.readyState !== 2
+    ) {
+      return res.status(503).json({
+        message:
+          "Database is not connected. Please check your MongoDB Atlas IP whitelist.",
+        status: "db_disconnected",
+      });
     }
     const { email, password } = req.body;
 
     // Check for user email
-    const user = await User.findOne({ email }).select('+password');
+    const user = await User.findOne({ email }).select("+password");
 
     if (user && (await user.matchPassword(password))) {
       // Block login if email is not verified
       if (!user.isVerified) {
         return res.status(403).json({
-          message: 'Please verify your email before logging in.',
+          message: "Please verify your email before logging in.",
           needsVerification: true,
           email: user.email,
         });
@@ -91,10 +103,10 @@ export const loginUser = async (req, res) => {
 
       const token = generateToken(user._id);
 
-      res.cookie('jwt', token, {
+      res.cookie("jwt", token, {
         httpOnly: true,
-        secure: process.env.NODE_ENV !== 'development', 
-        sameSite: process.env.NODE_ENV !== 'development' ? 'none' : 'strict', 
+        secure: process.env.NODE_ENV !== "development",
+        sameSite: process.env.NODE_ENV !== "development" ? "none" : "strict",
         maxAge: 30 * 24 * 60 * 60 * 1000,
       });
 
@@ -107,14 +119,14 @@ export const loginUser = async (req, res) => {
         yearLevel: user.yearLevel,
       });
     } else {
-      res.status(401).json({ message: 'Invalid email or password' });
+      res.status(401).json({ message: "Invalid email or password" });
     }
   } catch (error) {
-    console.error('Login Error:', error);
-    res.status(500).json({ 
-      message: 'Server error', 
+    console.error("Login Error:", error);
+    res.status(500).json({
+      message: "Server error",
       error: error.message,
-      stack: process.env.NODE_ENV === 'development' ? error.stack : undefined 
+      stack: process.env.NODE_ENV === "development" ? error.stack : undefined,
     });
   }
 };
@@ -123,14 +135,14 @@ export const loginUser = async (req, res) => {
 // @route   POST /api/auth/logout
 // @access  Public
 export const logoutUser = (req, res) => {
-  res.cookie('jwt', '', {
+  res.cookie("jwt", "", {
     httpOnly: true,
-    secure: process.env.NODE_ENV !== 'development',
-    sameSite: process.env.NODE_ENV !== 'development' ? 'none' : 'strict',
+    secure: process.env.NODE_ENV !== "development",
+    sameSite: process.env.NODE_ENV !== "development" ? "none" : "strict",
     expires: new Date(0),
   });
 
-  res.status(200).json({ message: 'Logged out successfully' });
+  res.status(200).json({ message: "Logged out successfully" });
 };
 
 // @desc    Get user profile
@@ -150,11 +162,11 @@ export const getUserProfile = async (req, res) => {
         yearLevel: user.yearLevel,
       });
     } else {
-      res.status(404).json({ message: 'User not found' });
+      res.status(404).json({ message: "User not found" });
     }
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: 'Server error' });
+    res.status(500).json({ message: "Server error" });
   }
 };
 
@@ -172,11 +184,10 @@ export const updateUserProfile = async (req, res) => {
     if (course) updateData.course = course;
     if (yearLevel) updateData.yearLevel = yearLevel;
 
-    const updatedUser = await User.findByIdAndUpdate(
-      req.user._id,
-      updateData,
-      { returnDocument: 'after', runValidators: true }
-    );
+    const updatedUser = await User.findByIdAndUpdate(req.user._id, updateData, {
+      returnDocument: "after",
+      runValidators: true,
+    });
 
     if (updatedUser) {
       res.json({
@@ -188,10 +199,10 @@ export const updateUserProfile = async (req, res) => {
         yearLevel: updatedUser.yearLevel,
       });
     } else {
-      res.status(404).json({ message: 'User not found' });
+      res.status(404).json({ message: "User not found" });
     }
   } catch (error) {
-    console.error('Update profile error:', error);
-    res.status(500).json({ message: 'Server error' });
+    console.error("Update profile error:", error);
+    res.status(500).json({ message: "Server error" });
   }
 };
