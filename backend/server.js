@@ -47,53 +47,34 @@ app.use(cors({
 }));
 
 // Database Connection
-const connectDB = async () => {
-  try {
-    if (!process.env.MONGODB_URI) {
-      console.log(
-        "MONGODB_URI not found in .env, skipping DB connection for now.",
-      );
-      return;
-    }
-    await mongoose.connect(process.env.MONGODB_URI);
-    console.log("MongoDB Connected...");
+let isConnected = false;
 
-    // Seed default data
-    seedCourses();
+export const connectDB = async () => {
+  if (isConnected) return;
+
+  if (!process.env.MONGODB_URI) {
+    throw new Error("❌ MONGODB_URI is missing from environment variables!");
+  }
+
+  try {
+    const db = await mongoose.connect(process.env.MONGODB_URI);
+    isConnected = db.connections[0].readyState === 1;
+    console.log("MongoDB Connected...");
   } catch (err) {
     console.error("Error connecting to MongoDB:", err.message);
-    // Don't exit process so server can still start without DB for now
+    throw err;
   }
 };
 
-import Course from "./models/Course.js";
-
-// DB and Courses seeded in connectDB above
-
-const seedCourses = async () => {
+// Ensure DB connection before handling API routes
+app.use(async (req, res, next) => {
   try {
-    const count = await Course.countDocuments();
-    if (count === 0) {
-      await Course.create([
-        {
-          name: "Computer Science",
-          description: "Core CS concepts and coding",
-        },
-        {
-          name: "Web Development",
-          description: "HTML, CSS, JS and frameworks",
-        },
-        { name: "UI/UX Design", description: "Design principles and tools" },
-        { name: "Digital Marketing", description: "SEO, SEM and social media" },
-      ]);
-      console.log("Default courses seeded!");
-    }
-  } catch (err) {
-    console.error("Error seeding courses:", err.message);
+    await connectDB();
+    next();
+  } catch (error) {
+    res.status(500).json({ message: "Database connection failed", error: error.message });
   }
-};
-
-connectDB();
+});
 
 // Routes
 app.use("/api/auth", authRoutes);
