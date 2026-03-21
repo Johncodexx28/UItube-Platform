@@ -430,7 +430,7 @@ const LandingPage = () => {
             <div className="bg-white rounded-2xl p-4 shadow-lg shadow-gray-200/50 hover:-translate-y-2 transition-transform duration-300 border border-gray-100">
               <div className="relative rounded-xl overflow-hidden mb-4 group h-52">
                 <img
-                  src="https://images.unsplash.com/photo-1626785773579-c530f901811c?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80"
+                  src="https://www.online.cut.ac.za/hs-fs/hubfs/multiracial-female-stock-traders-analyze-positive-2025-01-08-19-13-31-utc.jpg?width=1950&height=795&name=multiracial-female-stock-traders-analyze-positive-2025-01-08-19-13-31-utc.jpg"
                   alt="Design"
                   className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                 />
